@@ -92,63 +92,105 @@ const styles = {
   container: {
     display: "flex",
     flexDirection: "column",
-    gap: "20px",
+    gap: "24px",
+    width: "100%",
   },
+
   dropZone: {
-    border: "2px dashed",
-    borderRadius: "16px",
-    padding: "30px 20px",
+    border: "2px dashed rgba(148, 163, 184, 0.35)",
+    borderRadius: "18px",
+    padding: "36px 24px",
     textAlign: "center",
     transition: "all 0.3s ease",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    gap: "10px",
+    gap: "12px",
+    background: "rgba(15, 23, 42, 0.6)",
+    backdropFilter: "blur(10px)",
+    cursor: "pointer",
   },
+
+  dropZoneHover: {
+    borderColor: "#818cf8",
+    background: "rgba(30, 41, 59, 0.8)",
+    transform: "scale(1.01)",
+  },
+
   icon: {
-    fontSize: "2rem",
-    marginBottom: "5px",
+    fontSize: "2.2rem",
+    color: "#818cf8",
+    marginBottom: "6px",
   },
+
   dropText: {
-    color: "#cbd5e1",
-    fontSize: "0.9rem",
+    color: "#e5e7eb",
+    fontSize: "0.95rem",
     margin: 0,
-    wordBreak: "break-all",
+    wordBreak: "break-word",
+    lineHeight: "1.4",
   },
+
+  subText: {
+    fontSize: "0.8rem",
+    color: "#94a3b8",
+  },
+
   hiddenInput: {
     display: "none",
   },
+
   browseLabel: {
     fontSize: "0.85rem",
     color: "#60a5fa",
     cursor: "pointer",
     textDecoration: "underline",
-    fontWeight: "500",
+    fontWeight: "600",
   },
+
   uploadBtn: {
-    padding: "14px",
+    padding: "14px 18px",
     background: "linear-gradient(135deg, #6366f1 0%, #a855f7 100%)",
     color: "white",
     border: "none",
-    borderRadius: "12px",
+    borderRadius: "14px",
     fontWeight: "700",
     fontSize: "1rem",
-    boxShadow: "0 10px 15px -3px rgba(139, 92, 246, 0.3)",
-    transition: "transform 0.2s ease",
+    boxShadow: "0 12px 25px -8px rgba(139, 92, 246, 0.45)",
+    transition: "all 0.25s ease",
+    cursor: "pointer",
   },
+
+  uploadBtnHover: {
+    transform: "translateY(-2px)",
+    boxShadow: "0 18px 30px -8px rgba(139, 92, 246, 0.6)",
+  },
+
+  uploadBtnDisabled: {
+    opacity: 0.6,
+    cursor: "not-allowed",
+    boxShadow: "none",
+  },
+
   messageBox: {
-    padding: "12px",
-    borderRadius: "10px",
+    padding: "14px",
+    borderRadius: "12px",
     fontSize: "0.85rem",
     textAlign: "center",
-    border: "1px solid rgba(255,255,255,0.05)",
+    border: "1px solid rgba(255,255,255,0.08)",
+    background: "rgba(15, 23, 42, 0.7)",
+    color: "#e5e7eb",
   },
+
   loader: {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    gap: "8px"
-  }
+    gap: "10px",
+    fontSize: "0.9rem",
+    color: "#c7d2fe",
+  },
 };
+
 
 export default KnowledgePanel;

@@ -54,7 +54,9 @@ export default function ChatPanel({ hasKnowledge }) {
         done = doneReading;
 
         if (value) {
-          accumulated += decoder.decode(value, { stream: true });
+          accumulated += decoder
+            .decode(value, { stream: true })
+            .replace(/\n/g, "<br/>");
 
           setMessages((prev) => {
             const updated = [...prev];
@@ -105,14 +107,27 @@ export default function ChatPanel({ hasKnowledge }) {
             }}
           >
             <div
-              style={
-                msg.role === "user" ? styles.userBubble : styles.aiBubble
+              className={
+                msg.role === "assistant" &&
+                loading &&
+                i === messages.length - 1
+                  ? "streaming"
+                  : ""
               }
+              style={{
+                ...(msg.role === "user"
+                  ? styles.userBubble
+                  : styles.aiBubble),
+              }}
             >
               {msg.role === "assistant" ? (
                 <span
+                  className={
+                    loading && i === messages.length - 1 ? "stream" : ""
+                  }
                   dangerouslySetInnerHTML={{
-                    __html: highlightText(msg.text) +
+                    __html:
+                      highlightText(msg.text) +
                       (loading && i === messages.length - 1
                         ? `<span class="cursor">▍</span>`
                         : ""),
@@ -146,21 +161,50 @@ export default function ChatPanel({ hasKnowledge }) {
           style={{
             ...styles.sendButton,
             background: hasKnowledge ? "#10b981" : "#475569",
+            opacity: loading ? 0.7 : 1,
           }}
         >
-          {loading ? "..." : "Ask"}
+          {loading ? "Thinking..." : "Ask"}
         </button>
       </div>
 
-      {/* Cursor animation */}
+      {/* Streaming + Cursor Animations */}
       <style>
         {`
         .cursor {
+          display: inline-block;
+          margin-left: 2px;
           animation: blink 1s infinite;
         }
+
         @keyframes blink {
           0%,50% { opacity:1 }
           51%,100% { opacity:0 }
+        }
+
+        .stream {
+          animation: streamIn 0.12s ease-out;
+        }
+
+        @keyframes streamIn {
+          from {
+            opacity: 0.4;
+            transform: translateY(1px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .streaming {
+          animation: pulseGlow 1.2s infinite;
+        }
+
+        @keyframes pulseGlow {
+          0% { box-shadow: 0 0 0 rgba(56,189,248,0.0); }
+          50% { box-shadow: 0 0 14px rgba(56,189,248,0.18); }
+          100% { box-shadow: 0 0 0 rgba(56,189,248,0.0); }
         }
       `}
       </style>
@@ -168,57 +212,109 @@ export default function ChatPanel({ hasKnowledge }) {
   );
 }
 
+/* ===================== STYLES ===================== */
+
 const styles = {
-  container: { display: "flex", flexDirection: "column", height: "100%" },
+  container: {
+    display: "flex",
+    flexDirection: "column",
+    height: "100%",
+    background: "linear-gradient(180deg,#0f172a,#020617)",
+    borderRadius: "18px",
+    padding: "16px",
+  },
+
   header: {
     display: "flex",
     justifyContent: "space-between",
-    marginBottom: "15px",
+    alignItems: "center",
+    marginBottom: "14px",
   },
-  headerTitle: { color: "#fff", fontWeight: 600 },
+
+  headerTitle: {
+    color: "#f8fafc",
+    fontWeight: 700,
+    fontSize: "1rem",
+    letterSpacing: "0.3px",
+  },
+
   warningTag: {
-    color: "#f59e0b",
-    fontSize: "0.75rem",
-    padding: "4px 8px",
-    border: "1px solid rgba(245,158,11,0.3)",
-    borderRadius: "6px",
+    color: "#fbbf24",
+    fontSize: "0.7rem",
+    padding: "4px 10px",
+    border: "1px solid rgba(251,191,36,0.4)",
+    borderRadius: "999px",
+    background: "rgba(251,191,36,0.08)",
   },
-  chatWindow: { flex: 1, overflowY: "auto" },
+
+  chatWindow: {
+    flex: 1,
+    overflowY: "auto",
+    padding: "10px 6px",
+    display: "flex",
+    flexDirection: "column",
+    gap: "10px",
+  },
+
   emptyState: {
-    color: "#64748b",
+    color: "#94a3b8",
     textAlign: "center",
-    marginTop: "40%",
+    marginTop: "45%",
     fontStyle: "italic",
+    fontSize: "0.85rem",
   },
+
   userBubble: {
-    background: "linear-gradient(135deg,#2563eb,#3b82f6)",
-    color: "#fff",
-    padding: "12px 18px",
-    borderRadius: "20px 20px 4px 20px",
-    maxWidth: "80%",
+    alignSelf: "flex-end",
+    background: "linear-gradient(135deg,#2563eb,#60a5fa)",
+    color: "#ffffff",
+    padding: "12px 16px",
+    borderRadius: "18px 18px 4px 18px",
+    maxWidth: "75%",
+    fontSize: "0.9rem",
+    lineHeight: "1.4",
+    boxShadow: "0 8px 20px rgba(37,99,235,0.35)",
   },
+
   aiBubble: {
+    alignSelf: "flex-start",
     background: "rgba(255,255,255,0.08)",
     color: "#e5e7eb",
-    padding: "12px 18px",
-    borderRadius: "20px 20px 20px 4px",
-    maxWidth: "80%",
-    backdropFilter: "blur(6px)",
+    padding: "12px 16px",
+    borderRadius: "18px 18px 18px 4px",
+    maxWidth: "75%",
+    fontSize: "0.9rem",
+    lineHeight: "1.4",
+    backdropFilter: "blur(10px)",
+    border: "1px solid rgba(255,255,255,0.08)",
   },
-  inputContainer: { display: "flex", gap: "10px", marginTop: "10px" },
+
+  inputContainer: {
+    display: "flex",
+    gap: "10px",
+    marginTop: "12px",
+  },
+
   input: {
     flex: 1,
-    padding: "12px",
+    padding: "12px 14px",
     borderRadius: "14px",
-    background: "rgba(0,0,0,0.3)",
-    color: "#fff",
-    border: "1px solid rgba(255,255,255,0.1)",
+    background: "rgba(15,23,42,0.9)",
+    color: "#f8fafc",
+    border: "1px solid rgba(148,163,184,0.2)",
+    outline: "none",
+    fontSize: "0.9rem",
   },
+
   sendButton: {
-    padding: "0 24px",
+    padding: "0 22px",
     color: "#fff",
     borderRadius: "14px",
     border: "none",
-    fontWeight: "700",
+    fontWeight: 700,
+    cursor: "pointer",
+    background: "linear-gradient(135deg,#22c55e,#16a34a)",
+    boxShadow: "0 6px 18px rgba(34,197,94,0.35)",
+    transition: "transform 0.15s ease, box-shadow 0.15s ease",
   },
 };
