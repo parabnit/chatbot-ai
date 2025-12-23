@@ -14,14 +14,7 @@ function App() {
 
       <header style={styles.header}>
         <div style={styles.logoContainer}>
-          <span style={styles.emoji}>📚</span>
-          <h1 style={styles.title}>
-            Knowledge<span style={styles.titleAccent}>Chat</span>
-          </h1>
         </div>
-        <p style={styles.subtitle}>
-          Harness the power of local AI to interrogate your PDF documents securely.
-        </p>
       </header>
 
       <main style={styles.mainContainer}>
