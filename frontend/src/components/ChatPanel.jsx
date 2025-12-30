@@ -26,6 +26,15 @@ export default function ChatPanel({ hasKnowledge }) {
     return highlighted;
   };
 
+  // Typing Indicator Component
+  const TypingIndicator = () => (
+    <div style={styles.typingDots}>
+      <span style={{ ...styles.dot, animationDelay: "0s" }}></span>
+      <span style={{ ...styles.dot, animationDelay: "0.2s" }}></span>
+      <span style={{ ...styles.dot, animationDelay: "0.4s" }}></span>
+    </div>
+  );
+
   const askQuestion = async () => {
     if (!hasKnowledge || !question.trim() || loading) return;
 
@@ -34,8 +43,8 @@ export default function ChatPanel({ hasKnowledge }) {
     setQuestion("");
     setLoading(true);
 
-    // placeholder AI bubble
-    setMessages((prev) => [...prev, { role: "assistant", text: "" }]);
+    // Show typing indicator as a separate message
+    setMessages((prev) => [...prev, { role: "assistant", text: "typing" }]);
 
     try {
       const res = await fetch("http://localhost:3001/api/ask", {
@@ -44,35 +53,30 @@ export default function ChatPanel({ hasKnowledge }) {
         body: JSON.stringify({ question: userText }),
       });
 
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let done = false;
-      let accumulated = "";
+      const data = await res.json();
+      const answerText = data.answer;
 
-      while (!done) {
-        const { value, done: doneReading } = await reader.read();
-        done = doneReading;
-
-        if (value) {
-          accumulated += decoder
-            .decode(value, { stream: true })
-            .replace(/\n/g, "<br/>");
-
-          setMessages((prev) => {
-            const updated = [...prev];
-            updated[updated.length - 1] = {
-              role: "assistant",
-              text: accumulated,
-            };
-            return updated;
-          });
+      setMessages((prev) => {
+        const updated = [...prev];
+        // Replace the typing message with the actual answer
+        const index = updated.findIndex((m) => m.text === "typing");
+        if (index !== -1) {
+          updated[index] = { role: "assistant", text: answerText };
         }
-      }
+        return updated;
+      });
     } catch (err) {
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", text: "⚠️ Ollama server not responding." },
-      ]);
+      setMessages((prev) => {
+        const updated = [...prev];
+        const index = updated.findIndex((m) => m.text === "typing");
+        if (index !== -1) {
+          updated[index] = {
+            role: "assistant",
+            text: "⚠️ Ollama server not responding.",
+          };
+        }
+        return updated;
+      });
     } finally {
       setLoading(false);
     }
@@ -107,31 +111,17 @@ export default function ChatPanel({ hasKnowledge }) {
             }}
           >
             <div
-              className={
-                msg.role === "assistant" &&
-                loading &&
-                i === messages.length - 1
-                  ? "streaming"
-                  : ""
-              }
               style={{
                 ...(msg.role === "user"
                   ? styles.userBubble
                   : styles.aiBubble),
               }}
             >
-              {msg.role === "assistant" ? (
+              {msg.role === "assistant" && msg.text === "typing" ? (
+                <TypingIndicator />
+              ) : msg.role === "assistant" ? (
                 <span
-                  className={
-                    loading && i === messages.length - 1 ? "stream" : ""
-                  }
-                  dangerouslySetInnerHTML={{
-                    __html:
-                      highlightText(msg.text) +
-                      (loading && i === messages.length - 1
-                        ? `<span class="cursor">▍</span>`
-                        : ""),
-                  }}
+                  dangerouslySetInnerHTML={{ __html: highlightText(msg.text) }}
                 />
               ) : (
                 msg.text
@@ -168,43 +158,12 @@ export default function ChatPanel({ hasKnowledge }) {
         </button>
       </div>
 
-      {/* Streaming + Cursor Animations */}
+      {/* Animations */}
       <style>
         {`
-        .cursor {
-          display: inline-block;
-          margin-left: 2px;
-          animation: blink 1s infinite;
-        }
-
-        @keyframes blink {
-          0%,50% { opacity:1 }
-          51%,100% { opacity:0 }
-        }
-
-        .stream {
-          animation: streamIn 0.12s ease-out;
-        }
-
-        @keyframes streamIn {
-          from {
-            opacity: 0.4;
-            transform: translateY(1px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        .streaming {
-          animation: pulseGlow 1.2s infinite;
-        }
-
-        @keyframes pulseGlow {
-          0% { box-shadow: 0 0 0 rgba(56,189,248,0.0); }
-          50% { box-shadow: 0 0 14px rgba(56,189,248,0.18); }
-          100% { box-shadow: 0 0 0 rgba(56,189,248,0.0); }
+        @keyframes bounce {
+          0%, 80%, 100% { transform: scale(0); }
+          40% { transform: scale(1); }
         }
       `}
       </style>
@@ -219,9 +178,10 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     height: "100%",
-    background: "linear-gradient(180deg,#0f172a,#020617)",
+    background: "linear-gradient(180deg,#ffffff,#f1f5f9)",
     borderRadius: "18px",
     padding: "16px",
+    border: "1px solid rgba(0,0,0,0.08)",
   },
 
   header: {
@@ -232,19 +192,19 @@ const styles = {
   },
 
   headerTitle: {
-    color: "#f8fafc",
+    color: "#0f172a",
     fontWeight: 700,
     fontSize: "1rem",
     letterSpacing: "0.3px",
   },
 
   warningTag: {
-    color: "#fbbf24",
+    color: "#92400e",
     fontSize: "0.7rem",
     padding: "4px 10px",
-    border: "1px solid rgba(251,191,36,0.4)",
+    border: "1px solid rgba(251,191,36,0.5)",
     borderRadius: "999px",
-    background: "rgba(251,191,36,0.08)",
+    background: "rgba(251,191,36,0.15)",
   },
 
   chatWindow: {
@@ -257,7 +217,7 @@ const styles = {
   },
 
   emptyState: {
-    color: "#94a3b8",
+    color: "#64748b",
     textAlign: "center",
     marginTop: "45%",
     fontStyle: "italic",
@@ -273,20 +233,21 @@ const styles = {
     maxWidth: "75%",
     fontSize: "0.9rem",
     lineHeight: "1.4",
-    boxShadow: "0 8px 20px rgba(37,99,235,0.35)",
+    boxShadow: "0 8px 18px rgba(37,99,235,0.25)",
   },
 
   aiBubble: {
     alignSelf: "flex-start",
-    background: "rgba(255,255,255,0.08)",
-    color: "#e5e7eb",
+    background: "rgba(255,255,255,0.9)",
+    color: "#0f172a",
     padding: "12px 16px",
     borderRadius: "18px 18px 18px 4px",
     maxWidth: "75%",
     fontSize: "0.9rem",
     lineHeight: "1.4",
     backdropFilter: "blur(10px)",
-    border: "1px solid rgba(255,255,255,0.08)",
+    border: "1px solid rgba(0,0,0,0.08)",
+    boxShadow: "0 6px 16px rgba(0,0,0,0.08)",
   },
 
   inputContainer: {
@@ -299,22 +260,39 @@ const styles = {
     flex: 1,
     padding: "12px 14px",
     borderRadius: "14px",
-    background: "rgba(15,23,42,0.9)",
-    color: "#f8fafc",
-    border: "1px solid rgba(148,163,184,0.2)",
+    background: "#ffffff",
+    color: "#0f172a",
+    border: "1px solid rgba(15,23,42,0.2)",
     outline: "none",
     fontSize: "0.9rem",
   },
 
   sendButton: {
     padding: "0 22px",
-    color: "#fff",
+    color: "#ffffff",
     borderRadius: "14px",
     border: "none",
     fontWeight: 700,
     cursor: "pointer",
     background: "linear-gradient(135deg,#22c55e,#16a34a)",
-    boxShadow: "0 6px 18px rgba(34,197,94,0.35)",
+    boxShadow: "0 6px 16px rgba(34,197,94,0.25)",
     transition: "transform 0.15s ease, box-shadow 0.15s ease",
+  },
+
+  typingDots: {
+    display: "flex",
+    alignItems: "center",
+    gap: "4px",
+    height: "18px",
+    padding: "4px 0",
+  },
+
+  dot: {
+    width: "6px",
+    height: "6px",
+    backgroundColor: "#38bdf8",
+    borderRadius: "50%",
+    display: "inline-block",
+    animation: "bounce 1s infinite ease-in-out",
   },
 };

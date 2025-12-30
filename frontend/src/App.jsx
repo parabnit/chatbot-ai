@@ -55,10 +55,10 @@ const styles = {
   pageWrapper: {
     minHeight: "100vh",
     width: "100vw",
-    backgroundColor: "#0f172a",
+    backgroundColor: "#f8fafc",
     backgroundImage: `
-      radial-gradient(at 0% 0%, rgba(30, 58, 138, 0.6) 0px, transparent 50%),
-      radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.5) 0px, transparent 50%)
+      radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.15) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.15) 0px, transparent 50%)
     `,
     display: "flex",
     flexDirection: "column",
@@ -68,11 +68,13 @@ const styles = {
     position: "relative",
     overflowX: "hidden",
   },
+
   header: {
     textAlign: "center",
     margin: "40px 0 50px 0",
     zIndex: 10,
   },
+
   logoContainer: {
     display: "flex",
     alignItems: "center",
@@ -80,30 +82,31 @@ const styles = {
     gap: "15px",
     marginBottom: "10px",
   },
+
   emoji: {
     fontSize: "3rem",
-    filter: "drop-shadow(0 0 20px rgba(255,255,255,0.4))",
+    filter: "drop-shadow(0 0 10px rgba(0,0,0,0.15))",
     animation: "pulseEmoji 3s ease-in-out infinite",
   },
+
   title: {
     fontSize: "3rem",
     fontWeight: "900",
-    color: "#ffffff",
-    letterSpacing: "-0.04em",
     margin: 0,
-    background: "linear-gradient(135deg, #60a5fa, #a78bfa, #f472b6)",
+    letterSpacing: "-0.04em",
+    background: "linear-gradient(135deg, #2563eb, #7c3aed, #db2777)",
     WebkitBackgroundClip: "text",
     WebkitTextFillColor: "transparent",
-    textShadow: "0 0 15px rgba(255,255,255,0.2)"
   },
+
   subtitle: {
-    color: "#94a3b8",
+    color: "#475569",
     fontSize: "1.2rem",
     maxWidth: "600px",
     margin: "0 auto",
     lineHeight: "1.6",
-    textShadow: "0 0 8px rgba(0,0,0,0.2)"
   },
+
   mainContainer: {
     display: "flex",
     flexDirection: "row",
@@ -116,112 +119,125 @@ const styles = {
     justifyContent: "center",
     marginBottom: "50px",
   },
+
   sidebar: {
     flex: "1",
     minWidth: "380px",
     maxWidth: "450px",
     height: "fit-content",
   },
+
   chatSection: {
     flex: "2",
     minWidth: "550px",
     height: "750px",
   },
+
   glassCard: {
-    background: "rgba(30, 41, 59, 0.65)",
+    background: "rgba(255, 255, 255, 0.75)",
     backdropFilter: "blur(18px)",
     WebkitBackdropFilter: "blur(18px)",
     borderRadius: "30px",
-    border: "1px solid rgba(255, 255, 255, 0.1)",
+    border: "1px solid rgba(0, 0, 0, 0.08)",
     padding: "30px",
-    boxShadow: "0 25px 60px rgba(0, 0, 0, 0.4)",
+    boxShadow: "0 25px 50px rgba(0, 0, 0, 0.12)",
     display: "flex",
     flexDirection: "column",
     transition: "transform 0.3s ease, box-shadow 0.3s ease",
   },
+
   glassCardHover: {
     transform: "translateY(-5px)",
-    boxShadow: "0 30px 70px rgba(0, 0, 0, 0.5)",
+    boxShadow: "0 35px 60px rgba(0, 0, 0, 0.18)",
   },
+
   cardHeader: {
     marginBottom: "25px",
     display: "flex",
     justifyContent: "space-between",
     alignItems: "flex-start",
   },
+
   cardTitle: {
-    color: "#f1f5f9",
+    color: "#0f172a",
     fontSize: "1.4rem",
     fontWeight: "700",
     margin: 0,
   },
+
   statusIndicator: {
     display: "flex",
     alignItems: "center",
     gap: "10px",
     fontSize: "0.75rem",
-    color: "#cbd5e1",
-    background: "rgba(0,0,0,0.25)",
+    color: "#334155",
+    background: "rgba(0,0,0,0.05)",
     padding: "6px 12px",
     borderRadius: "20px",
     textTransform: "uppercase",
     letterSpacing: "0.05em",
     animation: "fadeIn 1.5s ease",
   },
+
   dot: {
     width: "10px",
     height: "10px",
     borderRadius: "50%",
+    backgroundColor: "#22c55e",
     animation: "pulseDot 2s infinite",
   },
+
   blob1: {
     position: "absolute",
     top: "-10%",
     left: "-10%",
     width: "550px",
     height: "550px",
-    background: "rgba(59, 130, 246, 0.2)",
+    background: "rgba(59, 130, 246, 0.18)",
     filter: "blur(140px)",
     borderRadius: "50%",
     zIndex: 0,
     animation: "moveBlob1 30s linear infinite alternate",
   },
+
   blob2: {
     position: "absolute",
     bottom: "-10%",
     right: "-5%",
     width: "450px",
     height: "450px",
-    background: "rgba(139, 92, 246, 0.15)",
+    background: "rgba(168, 85, 247, 0.16)",
     filter: "blur(120px)",
     borderRadius: "50%",
     zIndex: 0,
     animation: "moveBlob2 40s linear infinite alternate",
   },
+
   blob3: {
     position: "absolute",
     top: "35%",
     left: "45%",
     width: "350px",
     height: "350px",
-    background: "rgba(236, 72, 153, 0.08)",
+    background: "rgba(236, 72, 153, 0.12)",
     filter: "blur(100px)",
     borderRadius: "50%",
     zIndex: 0,
     animation: "moveBlob3 35s linear infinite alternate",
   },
+
   footer: {
     textAlign: "center",
     padding: "25px",
     color: "#64748b",
     fontSize: "0.85rem",
-    borderTop: "1px solid rgba(255, 255, 255, 0.08)",
+    borderTop: "1px solid rgba(0, 0, 0, 0.08)",
     width: "100%",
     position: "relative",
     zIndex: 10,
   },
-  // Keyframes injected via styled-components or CSS file
 };
+
 
 
 export default App;
