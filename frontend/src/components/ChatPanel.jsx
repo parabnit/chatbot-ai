@@ -36,7 +36,8 @@ export default function ChatPanel({ hasKnowledge }) {
   );
 
   const askQuestion = async () => {
-    if (!hasKnowledge || !question.trim() || loading) return;
+    if (!question.trim() || loading) return;
+
 
     const userText = question;
     setMessages((prev) => [...prev, { role: "user", text: userText }]);
@@ -140,14 +141,14 @@ export default function ChatPanel({ hasKnowledge }) {
           placeholder={
             hasKnowledge ? "Ask something..." : "Waiting for document..."
           }
-          disabled={!hasKnowledge || loading}
+          disabled={loading}
           style={styles.input}
           onKeyDown={(e) => e.key === "Enter" && askQuestion()}
         />
 
         <button
           onClick={askQuestion}
-          disabled={!hasKnowledge || loading}
+          disabled={loading}
           style={{
             ...styles.sendButton,
             background: hasKnowledge ? "#10b981" : "#475569",

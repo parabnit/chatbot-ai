@@ -5,49 +5,85 @@ const pdfParse = require("pdf-parse");
 const pool = require("../db");
 
 const router = express.Router();
-const upload = multer();
+const upload = multer({ storage: multer.memoryStorage() });
 
-// Helper function to clean text
+/* -------------------- HELPERS -------------------- */
+
+// Clean extracted PDF text
 const cleanText = (text) => {
   return text
-    .replace(/[^\x20-\x7E\s]/g, "") // 1. Remove non-printable/strange ASCII characters
-    .replace(/\s+/g, " ")           // 2. Collapse multiple spaces/newlines into a single space
-    .trim();                        // 3. Trim leading/trailing whitespace
+    .replace(/[^\x20-\x7E\s]/g, "") // remove non-printable chars
+    .replace(/\s+/g, " ")           // normalize whitespace
+    .trim();
 };
 
+// Chunk text by words (~300–400 words per chunk)
+const chunkText = (text, chunkSize = 350) => {
+  const words = text.split(" ");
+  const chunks = [];
+
+  for (let i = 0; i < words.length; i += chunkSize) {
+    chunks.push(words.slice(i, i + chunkSize).join(" "));
+  }
+
+  return chunks;
+};
+
+/* -------------------- ROUTE -------------------- */
+
 router.post("/upload", upload.single("pdf"), async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: "No PDF file uploaded" });
+  }
+
+  const pdfName = req.file.originalname;
+
   try {
-    if (!req.file) return res.status(400).json({ error: "No file uploaded" });
+    /* ---------- Prevent duplicate PDF uploads ---------- */
+    const existing = await pool.query(
+      "SELECT 1 FROM pdf_chunks WHERE pdf_name = $1 LIMIT 1",
+      [pdfName]
+    );
 
-    const pdfName = req.file.originalname;
-    const data = await pdfParse(req.file.buffer);
-    
-    // Clean the extracted text
-    const sanitizedText = cleanText(data.text);
-
-    if (!sanitizedText) {
-      return res.status(400).json({ error: "PDF appears to be empty or contains no readable text" });
+    if (existing.rowCount > 0) {
+      return res.status(409).json({
+        error: "PDF already uploaded",
+        pdf_name: pdfName,
+      });
     }
 
-    // Split text into chunks (~1000 chars) while trying to respect word boundaries
-    // This regex looks for up to 1000 characters but stops at a space
-    const chunks = sanitizedText.match(/.{1,1000}(\s|$)/g) || [];
+    /* ---------- Parse PDF ---------- */
+    const pdfData = await pdfParse(req.file.buffer);
+    const sanitizedText = cleanText(pdfData.text);
 
-    // Use a transaction for better performance and reliability
+    if (!sanitizedText || sanitizedText.length < 50) {
+      return res.status(400).json({
+        error: "PDF contains no readable text",
+      });
+    }
+
+    /* ---------- Chunk text ---------- */
+    const chunks = chunkText(sanitizedText);
+
+    /* ---------- Insert into DB (transaction) ---------- */
     const client = await pool.connect();
     try {
       await client.query("BEGIN");
-      
+
       for (let i = 0; i < chunks.length; i++) {
-        const chunkText = chunks[i].trim();
-        if (chunkText.length > 5) { // Ignore tiny "garbage" chunks
-          await client.query(
-            "INSERT INTO pdf_chunks (pdf_name, chunk_index, text) VALUES ($1, $2, $3)",
-            [pdfName, i, chunkText]
-          );
-        }
+        const chunk = chunks[i];
+
+        if (chunk.length < 20) continue; // skip garbage chunks
+
+        await client.query(
+          `
+          INSERT INTO pdf_chunks (pdf_name, chunk_index, text, tsv)
+          VALUES ($1, $2, $3, to_tsvector('english', $3))
+          `,
+          [pdfName, i, chunk]
+        );
       }
-      
+
       await client.query("COMMIT");
     } catch (dbErr) {
       await client.query("ROLLBACK");
@@ -56,10 +92,18 @@ router.post("/upload", upload.single("pdf"), async (req, res) => {
       client.release();
     }
 
-    res.json({ success: true, chunks: chunks.length });
+    /* ---------- Success ---------- */
+    res.json({
+      success: true,
+      pdf_name: pdfName,
+      chunks_stored: chunks.length,
+      message: "PDF uploaded and indexed successfully",
+    });
   } catch (err) {
-    console.error("Upload failed:", err);
-    res.status(500).json({ error: "PDF processing failed" });
+    console.error("PDF upload failed:", err);
+    res.status(500).json({
+      error: "PDF processing failed",
+    });
   }
 });
 
